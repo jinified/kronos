@@ -56,7 +56,6 @@ jobs:
     docker:
         - image: circleci/python:3.6.8
       steps:
-
         # Gets the code
         - checkout
 
