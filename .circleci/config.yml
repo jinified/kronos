@@ -55,8 +55,8 @@ jobs:
     # Same environment
     docker:
         - image: circleci/python:3.6.8
-      steps:
-        # Gets the code
+    steps:
+    # Gets the code
         - checkout
 
         # Use `poetry publish` to Publish the package using username and password from CircleCI environment variables
