@@ -4,6 +4,7 @@ Kronos: A simple scheduler for graduate training programme
 Entities: User, Schedule, Rotation
 """
 
+
 def generateUserSchedule(user, assignments, scoring_function):
     """ Generate most optimal user schedule
     Parameters:
@@ -14,7 +15,8 @@ def generateUserSchedule(user, assignments, scoring_function):
     Returns:
         schedule (list): list of rotations
     """
-    return [{'rotationId': 'PMO', 'startDate': '012018'}]
+    return [{"rotationId": "PMO", "startDate": "012018"}]
+
 
 def getOverallSchedule(users):
     """ Generate overall schedule from individual user's schedule
@@ -25,6 +27,18 @@ def getOverallSchedule(users):
         schedule (dict): overall assignments
     """
     return {}
+
+
+def getConflictingAssignments(schedule):
+    """ Get list of assignments which exceeded rotation capacity
+    Parameters:
+        schedule (dict): overall assignments
+
+    Returns:
+        confictingAssignmentsByRotation (dict): overall schedule with conflicting assignments
+    """
+    return {}
+
 
 if __name__ == "__main__":
     pass

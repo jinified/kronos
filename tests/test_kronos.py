@@ -1,4 +1,4 @@
-from kronos.kronos import generateUserSchedule, getOverallSchedule
+from kronos.kronos import generateUserSchedule, getOverallSchedule, getConflictingAssignments
 
 def test_generateUserSchedule():
     result = [{'rotationId': 'PMO', 'startDate': '012018'}]
@@ -6,3 +6,6 @@ def test_generateUserSchedule():
 
 def test_getOverallSchedule():
     assert getOverallSchedule([]) == {}
+
+def test_getConflictingAssignments():
+    assert getConflictingAssignments({}) == {}
