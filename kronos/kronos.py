@@ -5,6 +5,24 @@ Entities: User, Schedule, Rotation
 """
 
 
+def assignments2schedule(assignments):
+    """ Convert assignment object to overall schedule
+    """
+    users = {}
+    for weekly_assignments in assignments.values():
+        for rotationId, rotationAssignments in weekly_assignments.items():
+            for userId, assignment in rotationAssignments.items():
+                if userId not in users:
+                    users[userId] = {}
+                if rotationId not in users[userId]:
+                    users[userId][rotationId] = {
+                        'startDate': assignment[0],
+                        'endDate': assignment[1],
+                    }
+    print(users)
+    return users
+
+
 def generateUserSchedule(user, assignments, scoring_function):
     """ Generate most optimal user schedule
     Parameters:
