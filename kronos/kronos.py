@@ -4,21 +4,57 @@ Kronos: A simple scheduler for graduate training programme
 Entities: User, Schedule, Rotation
 """
 
+from operator import itemgetter
+from datetime import datetime, timedelta
+
+
+def schedule2assignments(schedule):
+    """ Convert schedule object to assignment object
+    """
+    rotations = {}
+    for userId, userSchedule in schedule.items():
+        for rotation in userSchedule:
+            id = rotation["rotationId"]
+            if id not in rotations:
+                rotations[id] = [[{}], []]
+            print(rotations[id][0][0])
+            startDate, endDate = itemgetter("startDate", "endDate")(rotation)
+            start = datetime.strptime(startDate, "%d%m%Y")
+            end = datetime.strptime(endDate, "%d%m%Y")
+            duration = int((end - start).days / 7.0)
+            for i in range(duration):
+                date = (start + timedelta(weeks=i)).strftime("%W%Y")
+                if date not in rotations[id][0][0]:
+                    rotations[id][0][0][date] = 0
+                rotations[id][0][0][date] += 1
+            rotations[id][1].append((userId, startDate, endDate))
+        sortedDate = sorted(list(rotations[id][0][0].keys()))
+        if len(rotations[id][0]) < 2:
+            rotations[id][0].append(sortedDate[0])
+            rotations[id][0].append(sortedDate[-1])
+        elif sortedDate[0] < rotations[id][0][1]:
+            rotations[id][0][1] = sortedDate[0]
+        elif len(rotations[id][0]) > 2 and sortedDate[-1] > rotations[id][0][2]:
+            rotations[id][0][2] = sortedDate[-1]
+    print(rotations)
+    return rotations
+
 
 def assignments2schedule(assignments):
     """ Convert assignment object to overall schedule
     """
     users = {}
-    for weekly_assignments in assignments.values():
-        for rotationId, rotationAssignments in weekly_assignments.items():
-            for userId, assignment in rotationAssignments.items():
-                if userId not in users:
-                    users[userId] = {}
-                if rotationId not in users[userId]:
-                    users[userId][rotationId] = {
-                        'startDate': assignment[0],
-                        'endDate': assignment[1],
-                    }
+    for rotationId, rotationInfo in assignments.items():
+        for userId, userAssignment in rotationInfo[1].items():
+            if userId not in users:
+                users[userId] = []
+            users[userId].append(
+                {
+                    "rotationId": rotationId,
+                    "startDate": userAssignment[0],
+                    "endDate": userAssignment[1],
+                }
+            )
     print(users)
     return users
 

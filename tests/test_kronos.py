@@ -1,6 +1,6 @@
 import pytest
-from datetime import datetime, timedelta
-from kronos.kronos import generateUserSchedule, getOverallSchedule, getConflictingAssignments, assignments2schedule
+from datetime import datetime
+from kronos.kronos import generateUserSchedule, getOverallSchedule, getConflictingAssignments, assignments2schedule, schedule2assignments
 
 
 @pytest.fixture(scope='function')
@@ -16,7 +16,9 @@ def assignments(request):
     start = datetime.strptime('1' + start, "%w%W%Y")
     end = datetime.strptime('1' + end, "%w%W%Y")
     duration = int((end - start).days / 7.0)
-    return {(start + timedelta(weeks=x)).strftime('%W%Y'): rotations for x in range(duration)}
+    # Number of assignments per unit time
+    occupancy = ([0] * duration, start, end)
+    return {rotationId: (occupancy, assignments) for rotationId, assignments in rotations.items()}
     
 
 @pytest.mark.parametrize('assignments', [
@@ -37,10 +39,19 @@ def assignments(request):
         }})
 ], indirect=['assignments'])
 def test_assignments2schedule(assignments):
-    result = {'sjtsoonj': {'PMO': {'startDate': '01012018', 'endDate': '01042018'}}, 'thava': {'PMO': {'startDate': '01032018', 'endDate': '01062018'}}, 'soomay': {'PE': {'startDate': '01012018', 'endDate': '01042018'}}, 'brina': {'PE': {'startDate': '01032018', 'endDate': '01062018'}}, 'chris': {'PM': {'startDate': '01012018', 'endDate': '01042018'}}, 'akmal': {'PM': {'startDate': '05072018', 'endDate': '05092018'}}}
+    result = {'sjtsoonj': [{'rotationId': 'PMO', 'startDate': '01012018', 'endDate': '01042018'}], 'thava': [{'rotationId': 'PMO', 'startDate': '01032018', 'endDate': '01062018'}], 'soomay': [{'rotationId': 'PE', 'startDate': '01012018', 'endDate': '01042018'}], 'brina': [{'rotationId': 'PE', 'startDate': '01032018', 'endDate': '01062018'}], 'chris': [{'rotationId': 'PM', 'startDate': '01012018', 'endDate': '01042018'}], 'akmal': [{'rotationId': 'PM', 'startDate': '05072018', 'endDate': '05092018'}]}
 
+    print(assignments)
     assert assignments2schedule(assignments) == result
 
+
+@pytest.fixture(scope='function')
+def schedule(request):
+    result = {'sjtsoonj': [{'rotationId': 'PMO', 'startDate': '01012018', 'endDate': '01042018'}], 'thava': [{'rotationId': 'PMO', 'startDate': '01032018', 'endDate': '01062018'}], 'soomay': [{'rotationId': 'PE', 'startDate': '01012018', 'endDate': '01042018'}], 'brina': [{'rotationId': 'PE', 'startDate': '01032018', 'endDate': '01062018'}], 'chris': [{'rotationId': 'PM', 'startDate': '01012018', 'endDate': '01042018'}], 'akmal': [{'rotationId': 'PM', 'startDate': '05072018', 'endDate': '05092018'}]}
+    return result
+
+def test_schedule2assignment(schedule):
+    assert schedule2assignments(schedule) == 2
 
 @pytest.mark.parametrize('assignments', [
     ('122018', '482018', {
