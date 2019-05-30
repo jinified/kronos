@@ -45,6 +45,7 @@ class User:
         print("Name: {self.name}")
         print("Existing schedule: {self.schedule}")
         print(f"Possible Rotations: {self.possibleRotations}\nOrder: {self.order}")
+        print()
         if len(self.possibleRotations) > 0:
             problem.addVariables(self.possibleRotations, self.order)
 
@@ -57,8 +58,7 @@ class User:
             scores = np.zeros(len(solutions))
             for sidx, solution in enumerate(solutions):
                 scores[sidx] = scoring_function(
-                    assignments, sorted(solution.items(), key=lambda x: x[1])
-                )
+                    assignments, sorted(solution.items(), key=lambda x: x[1]), self.earliestAvailableDate())
 
             chosen = np.argsort(scores)
             solution = solutions[chosen[0]]

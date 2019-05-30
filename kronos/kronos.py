@@ -8,6 +8,83 @@ from operator import itemgetter
 from datetime import datetime, timedelta
 
 
+def getRotationCapacity(rotationId, startDate, endDate, assignments):
+    """ Calculate number of users assigned to a particular rotation during the specified duration
+    """
+    start = datetime.strptime(startDate, "%d%m%Y")
+    end = datetime.strptime(endDate, "%d%m%Y")
+    duration = int((end - start).days / 7.0)
+    # Weeks involved during the rotation
+    weeks = [(start + timedelta(weeks=x)).strftime("%W%Y") for x in range(0, duration)]
+    capacity = sum(itemgetter(*weeks)(assignments[rotationId][0][0]))
+    return capacity
+
+
+def score_assignment(
+    assignments,
+    solution,
+    earliestAvailableDate,
+    core_rotations=["PMO", "PE", "SE", "PM"],
+    rotation_duration={
+        "PMO": 12,
+        "PE": 12,
+        "SE": 12,
+        "PM": 12,
+        "SYS": 12,
+        "ARC": 12,
+        "ANA": 12,
+    },
+):
+    """ Calculate loss function for suggested solution (negative = better)
+    Parameters:
+        assignments (dict): global assignment object by rotation
+        solution (dict): rotation assignment for a user
+        earliestAvailableDate (date): earliest date where a user can be assigned a rotation
+        core_rotations (list): rotation that should be completed first
+        rotation_duration (dict): duration of each rotation
+    """
+    print(solution)
+    # SOFT CONSTRAINT 1 - Core rotations should be completed in the first 4 rotations if possible
+    core_first_loss = sum(
+        [
+            -3 if x[0] in core_rotations else 0
+            for x in solution
+            if int(x[1]) <= len(core_rotations)
+        ]
+    )
+    # SOFT CONSTRAINT 2 - External Assignment must be assigned last
+    external_assignment_loss = (
+        99 if "EXT" in [x[0] for x in solution] and solution[-1][0] != "EXT" else 0
+    )
+
+    # Calculate timing of each rotation from solution
+    solution = [
+        (
+            x[0],
+            rotation_duration[x[0]]
+            + (sum([rotation_duration[x[0]] for x in solution[:i]]) if i != 0 else 0),
+        )
+        for i, x in enumerate(solution)
+    ]
+    startDate = earliestAvailableDate
+    schedule = []
+    for x in solution:
+        endDate = startDate + timedelta(weeks=x[1]) - timedelta(days=1)
+        # Make sure the date falls on weekday
+        if endDate.weekday() >= 5:
+            endDate -= timedelta(endDate.weekday() - 4)
+        schedule.append(
+            (x[0], startDate.strftime("%d%m%Y"), endDate.strftime("%d%m%Y"))
+        )
+        startDate += timedelta(weeks=x[1])
+
+    spread_first_loss = sum(
+        [getRotationCapacity(x[0], x[1], x[2], assignments) for x in schedule]
+    )
+    loss = core_first_loss + external_assignment_loss + spread_first_loss
+    return loss
+
+
 def schedule2assignments(schedule):
     """ Convert schedule object to assignment object
     """
